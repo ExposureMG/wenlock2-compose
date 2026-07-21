@@ -35,6 +35,7 @@ services:
       POLICY_FNAME: "/data/cfg/botPolicy.yaml"
       OG_PASSTHROUGH: "true"
       OG_EXPIRY_TIME: "24h"
+      USE_REMOTE_ADDRESS: "true"
     healthcheck:
       test: ["CMD", "anubis", "--healthcheck"]
       interval: 5s
