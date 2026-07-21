@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  wenlock2-server:
+    image: exposuremg9936/wenlock2-server:latest
+    container_name: wenlock2-server
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - wenlock2-server
+
+
+  wenlock2:
+    image: exposuremg9936/wenlock2:latest
+    container_name: wenlock2
+    depends_on:
+      - wenlock2-server
+    restart: unless-stopped
+    env_file:
+      - ../wenlock2/.env
+
+
+  anubis:
+    image: ghcr.io/techarohq/anubis:latest
+    environment:
+      BIND: ":8080"
+      DIFFICULTY: "4"
+      METRICS_BIND: ":9090"
+      SERVE_ROBOTS_TXT: "true"
+      TARGET: "http://nginx"
+      POLICY_FNAME: "/data/cfg/botPolicy.yaml"
+      OG_PASSTHROUGH: "true"
+      OG_EXPIRY_TIME: "24h"
+    healthcheck:
+      test: ["CMD", "anubis", "--healthcheck"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 500ms
+    ports:
+      - 8080:8080
+    volumes:
+      - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
